@@ -5,10 +5,8 @@
 %% Imports
 clear all, close all, clc
 
-scriptPath = fileparts(mfilename('fullpath'));
-projectRoot = fileparts(scriptPath);
-commonsPath = fullfile(projectRoot, 'commons');
-
+basePath = fileparts(pwd);
+commonsPath = fullfile(basePath, 'commons');
 addpath(commonsPath);
 
 %% Read Image
@@ -53,11 +51,12 @@ axis image
 %% DECONVOLUTION ALGORITHM
 
 % Algorithm input parameters
-varin.Nit           = 10000;            % Number of iterations
+varin.Nit           = 10;            % Number of iterations
 varin.epsilon_stop  = 1.e-6;            % Epsilon stop criteria
 varin.dt_u          = 1*1e-3;           % Step size u
 varin.dt_k          = 1*1e-3;           % Step size Kernel
 varin.lambda        = 1;                % Regularization Hyperparam
+varin.p             = 2;                % p Laplacian
 
 varin.f             = im_blur_f;        % Blurred Image
 varin.u             = im_blur_u;        % Initial u
@@ -77,28 +76,28 @@ if varin.Verbose ~= 0
     en_blind   = varout.en;
     pr_blind   = varout.pr;
     fi_blind   = varout.fi;
-    ssim_blind = varout.ssim;
+    ssim_blind = varout.ssim_u;
 end
 
 %% Show Blind Deconvolution Model Final Results
 [ssimval,ssimmap] = ssim(u_blind,im);
 
 figure
-subplot(141), imagesc(u_blind), title(['Reconstructed Image PSNR: ',num2str(PSNR(im,u_blind)),' db'])
+subplot(161), imagesc(u_blind), title(['Reconstructed Image PSNR: ',num2str(PSNR(im,u_blind)),' db'])
 axis off
 axis image
-subplot(142), plot(en_blind,'r','LineWidth', 2), hold on,
+subplot(162), plot(en_blind,'r','LineWidth', 2), hold on,
               plot(fi_blind,'b', 'LineWidth', 2),
               plot(pr_blind,'g','LineWidth', 2)
               legend('Total Energy','Fidelity','Prior'), grid on
-subplot(143), plot(psnr_blind,'c','LineWidth', 2),
+subplot(163), plot(psnr_blind,'c','LineWidth', 2),
               legend('PSNR (db)'), grid on
-subplot(143), plot(ssim_blind,'c','LineWidth', 2), 
+subplot(164), plot(ssim_blind,'c','LineWidth', 2), 
               legend('SSIM'), grid on
-subplot(144), imagesc(ssimmap), title("Reconstructed Image SSIM: "+ssimval)
+subplot(165), imagesc(ssimmap), title("Reconstructed Image SSIM: "+ssimval)
 axis off
 axis image
-subplot(141), imagesc(k_blind), title('Reconstructed kernel ')
+subplot(166), imagesc(k_blind), title('Reconstructed kernel ')
 axis off
 axis image
 
@@ -108,7 +107,7 @@ figure,
 subplot(131), imagesc(im),       title('Original Image')
 axis off
 axis image
-subplot(132), imagesc(im_blur),  title('Blurred Image')
+subplot(132), imagesc(im_blur_u),  title('Blurred Image')
 axis off
 axis image
 subplot(133), imagesc(u_blind), title('Restored Image')
@@ -131,7 +130,7 @@ axis image
 
 % DeconvBlind
 init_kernel =  fspecial('gaussian', [21, 21], 0.001);  % Initial Kernel
-[u_deconvblind, k_deconvblind] = deconvblind(im_blur, init_kernel, 100);
+[u_deconvblind, k_deconvblind] = deconvblind(im_blur_u, init_kernel, 10);
 [ssim_deconvblind,ssimmap_deconvblind] = ssim(u_deconvblind,im);
 
 
@@ -158,7 +157,7 @@ axis image
 subplot(132), imagesc(u_deconvblind), title(['DeconvBlind: ', num2str(PSNR(im,u_deconvblind)),' db'])
 axis off
 axis image
-subplot(133), imagesc(u_blind), title(['Blind Deconvolution: ', num2str(PSNR(im,u_deconv)),' db'])
+subplot(133), imagesc(u_blind), title(['Blind Deconvolution: ', num2str(PSNR(im,u_blind)),' db'])
 axis off
 axis image
 

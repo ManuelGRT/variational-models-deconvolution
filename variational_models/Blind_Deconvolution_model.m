@@ -1,7 +1,7 @@
 %% --------------------------------------------------------------------- %%
 %      Blind Deconvolution: Perrone, Favaro, E. Schiavi, M. Ramirez       %
 %%-----------------------------------------------------------------------%%
-function [u,k] = Blind_Deconvolution_model(varin)
+function [varout]= Blind_Deconvolution_model(varin)
 %-------------------------------------------------------------------------%
 %                                 Inputs                                  %
 %-------------------------------------------------------------------------%
@@ -43,6 +43,14 @@ Convt_u =@(u,k) conv2(u, rot90(k,2), 'full');
 
 Convt_k =@(u,f) conv2(rot90(u,2), f, 'valid');
 
+% Kernel and Fourier Transform Kernel
+dim = size(im_org);
+kernel_Fourier = psf2otf(kernel,[dim(1),dim(2)]);
+
+% Image Transformation Kernel + Noise
+R =@(x) real(ifft2(kernel_Fourier.*fft2(x)));
+f_same = u;
+
 %----------------------- Variables initialization ------------------------%
 k = ones(MK,NK)/MK/NK;
 
@@ -60,22 +68,25 @@ while (iter < Nit)  && (~stop)
             if ~mod(iter,100)
                 imshow(u),pause(0.01)
             end
-            [en(iter),pr(iter),fi(iter)] = pEnergy_R(u,f,lambda,p,R);
+            [en(iter),pr(iter),fi(iter)] = pEnergy_R(u,f_same,lambda,p,R);
             psnr(iter) = PSNR(u,im_org);
-            [ssim(iter),ssimmap] = ssim(u,im_org);
-            disp(['Iter: ',num2str(iter),' PSNR: ', num2str(psnr(iter)),' SSIM: ', num2str(ssim(iter)),' Total Energy: ', num2str(en(iter)), ' Prior: ', num2str(pr(iter)), ' Fidelity: ',num2str(fi(iter)) ])
+            [ssim_u(iter),ssimmap] = ssim(u,im_org);
+            disp(['Iter: ',num2str(iter),' PSNR: ', num2str(psnr(iter)),' SSIM: ', num2str(ssim_u(iter)),' Total Energy: ', num2str(en(iter)), ' Prior: ', num2str(pr(iter)), ' Fidelity: ',num2str(fi(iter)) ])
         case 2
-            [en(iter),pr(iter),fi(iter)] = pEnergy_R(u,f,lambda,2,R);
+            [en(iter),pr(iter),fi(iter)] = pEnergy_R(u,f_same,lambda,p,R);
             psnr(iter) = PSNR(u,im_org);
-            [ssim(iter),ssimmap] = ssim(u,im_org);
-            subplot(141), imshow(u), title(['PSNR: ',num2str(psnr(iter))])
-            subplot(142), plot(en,'r','LineWidth', 2), hold on,
+            [ssim_u(iter),ssimmap] = ssim(u,im_org);
+            subplot(151), imshow(u), title(['PSNR: ',num2str(psnr(iter))])
+            subplot(152), plot(en,'r','LineWidth', 2), hold on,
                           plot(fi,'b','LineWidth', 2),
                           plot(pr,'g','LineWidth', 2)
                           legend('Total Energy','Fidelity','Prior'), grid on
-            subplot(143), plot(psnr,'c','LineWidth', 2),
+            subplot(153), plot(psnr,'c','LineWidth', 2), 
                           legend('PSNR (db)'), grid on
-            subplot(144), imshow(ssimmap,[]), title("SSIM: "+ssim(iter))
+            subplot(154), imshow(ssimmap,[]), title("SSIM: "+ssim_u(iter))
+            subplot(155), imagesc(k), title(['Reconstructed kernel'])
+            axis image
+            axis off
             pause(0)
     end
 
@@ -127,15 +138,11 @@ if Verbose == 0
     varout.k        = k;
 else
     varout.u        = u;
+    varout.k        = k;
     varout.en       = en;
     varout.pr       = pr;
     varout.fi       = fi;
     varout.psnr     = psnr;
-    varout.ssim     = ssim;
+    varout.ssim_u     = ssim_u;
 end
 end
-
-
-
-
-

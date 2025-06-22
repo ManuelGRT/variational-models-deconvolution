@@ -5,10 +5,8 @@
 %% Imports
 clear all, close all, clc
 
-scriptPath = fileparts(mfilename('fullpath'));
-projectRoot = fileparts(scriptPath);
-commonsPath = fullfile(projectRoot, 'commons');
-
+basePath = fileparts(pwd);
+commonsPath = fullfile(basePath, 'commons');
 addpath(commonsPath);
 
 %% Read Image
@@ -21,7 +19,7 @@ im = im2double(im); % im2double transforms the data into double type and in the 
 
 %% Blurring with Noise
 % Gaussian Noise
-Noise_STD = 0;
+Noise_STD = 0.15;
 noise_im = Noise_STD*randn(size(im));
 
 % Load Gaussian Kernel
@@ -68,7 +66,7 @@ varin.lambda2   = 1;              % Regularization Hyperparam
 varin.Nit       = 10000;          % Number of Iterations
 varin.dt        = 1*1e-2;         % Step size 
 varin.epsilon   = 1.e-6;          % Epsilon
-varin.hasNoise  = false;          % Image has Noise
+varin.hasNoise  = true;           % Image has Noise
 varin.stop_C    = 0.95;           % Stop Criteria constant
 varin.p         = 2;              % p Laplacian
 
@@ -88,25 +86,25 @@ if varin.Verbose ~= 0
     en_p   = varout.en;
     pr_p   = varout.pr;
     fi_p   = varout.fi;
-    ssim_p = varout.ssim;
+    ssim_p = varout.ssim_u;
 end
 
 %% Show Deconvolution Denoising Model Final Results
-[ssimval,ssimmap] = ssim(u_deconv,im);
+[ssimval,ssimmap] = ssim(u_p,im);
 
 figure
-subplot(141), imagesc(u_p), title(['Reconstructed Image PSNR: ',num2str(PSNR(im,u_deconv)),' db'])
+subplot(151), imagesc(u_p), title(['Reconstructed Image PSNR: ',num2str(PSNR(im,u_p)),' db'])
 axis off
 axis image
-subplot(142), plot(en_p,'r','LineWidth', 2), hold on,
+subplot(152), plot(en_p,'r','LineWidth', 2), hold on,
               plot(fi_p,'b', 'LineWidth', 2),
               plot(pr_p,'g','LineWidth', 2)
               legend('Total Energy','Fidelity','Prior'), grid on
-subplot(143), plot(psnr_p,'c','LineWidth', 2), 
+subplot(153), plot(psnr_p,'c','LineWidth', 2), 
               legend('PSNR (db)'), grid on
-subplot(143), plot(ssim_p,'c','LineWidth', 2), 
+subplot(154), plot(ssim_p,'c','LineWidth', 2), 
               legend('SSIM'), grid on
-subplot(144), imagesc(ssimmap), title("Reconstructed Image SSIM: "+ssimval)
+subplot(155), imagesc(ssimmap), title("Reconstructed Image SSIM: "+ssimval)
 axis off
 axis image
 
@@ -127,7 +125,7 @@ axis image
 %% Matlab Deconvolution Models: Lucy-Richardson deconvolution | Deconvreg
 
 % Lucy-Richardson Model
-lucy = deconvlucy(im_blur_noise, kernel, 100);
+lucy = deconvlucy(im_blur_noise, kernel, 1000);
 [ssim_lucy,ssimmap_lucy] = ssim(lucy,im);
 
 % DeconvReg model
@@ -139,13 +137,13 @@ figure,
 subplot(221), imagesc(u_deconvreg),title(['Deconvreg-L1 PSNR: ',num2str(PSNR(im,u_deconvreg)),' db'])
 axis off
 axis image
-subplot(224), imagesc(ssimmap_deconvreg), title("Deconvreg-L1 SSIM: "+ssim_deconvreg)
+subplot(222), imshow(ssimmap_deconvreg,[]), title("Deconvreg-L1 SSIM: "+ssim_deconvreg)
 axis off
 axis image
 subplot(223), imagesc(lucy),    title(['Lucy-Richardson PSNR: ',num2str(PSNR(im,lucy)),' db'])
 axis off
 axis image
-subplot(224), imagesc(ssimmap_lucy), title("Lucy-Richardson SSIM: "+ssim_lucy)
+subplot(224), imshow(ssimmap_lucy,[]), title("Lucy-Richardson SSIM: "+ssim_lucy)
 axis off
 axis image
 

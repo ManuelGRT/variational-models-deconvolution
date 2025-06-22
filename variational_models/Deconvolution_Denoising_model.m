@@ -60,13 +60,14 @@ while (iter <= Nit) && (~stop)
             if ~mod(iter,100)
                 imshow(u),pause(0.01)
             end
-            [en(iter),pr(iter),fi(iter)] = pEnergy_R(u,f,lambda,p,R);
+            [en(iter),pr(iter),fi(iter)] = pEnergy_R(u,f,lambda1,p,R);
             psnr(iter) = PSNR(u,im_org);
-            disp(['Iter: ',num2str(iter),' PSNR: ', num2str(psnr(iter)), ' Total Energy: ', num2str(en(iter)), ' Prior: ', num2str(pr(iter)), ' Fidelity: ',num2str(fi(iter)) ])
+            [ssim_u(iter),ssimmap] = ssim(u,im_org);
+            disp(['Iter: ',num2str(iter),' PSNR: ', num2str(psnr(iter)),' SSIM: ', num2str(ssim_u(iter)),' Total Energy: ', num2str(en(iter)), ' Prior: ', num2str(pr(iter)), ' Fidelity: ',num2str(fi(iter)) ])
         case 2
-            [en(iter),pr(iter),fi(iter)] = pEnergy_R(u,f,lambda,p,R);
+            [en(iter),pr(iter),fi(iter)] = pEnergy_R(u,f,lambda1,p,R);
             psnr(iter) = PSNR(u,im_org);
-            [ssim(iter),ssimmap] = ssim(u,im_org);
+            [ssim_u(iter),ssimmap] = ssim(u,im_org);
             subplot(141), imshow(u), title(['PSNR: ',num2str(psnr(iter))])
             subplot(142), plot(en,'r','LineWidth', 2), hold on,
                           plot(fi,'b','LineWidth', 2),
@@ -74,7 +75,7 @@ while (iter <= Nit) && (~stop)
                           legend('Total Energy','Fidelity','Prior'), grid on
             subplot(143), plot(psnr,'c','LineWidth', 2), 
                           legend('PSNR (db)'), grid on
-            subplot(144), imshow(ssimmap,[]), title("SSIM: "+ssim(iter))
+            subplot(144), imshow(ssimmap,[]), title("SSIM: "+ssim_u(iter))
             pause(0)
     end
 %----------------------------- Algorithm ---------------------------------%
@@ -129,7 +130,7 @@ else
     varout.pr       = pr;
     varout.fi       = fi;
     varout.psnr     = psnr;
-    varout.ssim     = ssim;
+    varout.ssim_u     = ssim_u;
 end
 end
 
