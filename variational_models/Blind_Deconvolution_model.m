@@ -1,22 +1,21 @@
 %% --------------------------------------------------------------------- %%
-%     Deconvolution and Denoising: E. Schiavi, I. Ramírez, M. Ramirez     %
+%      Blind Deconvolution: Perrone, Favaro, E. Schiavi, M. Ramirez       %
 %%-----------------------------------------------------------------------%%
-function [varout]= Deconvolution_Denoising_model(varin)
+function [u,k] = Blind_Deconvolution_model(varin)
 %-------------------------------------------------------------------------%
 %                                 Inputs                                  %
 %-------------------------------------------------------------------------%
 im_org   = varin.im_org;
 f        = varin.f;
+u        = varin.u;
 kernel   = varin.kernel;
 
 p        = varin.p;
 Nit      = varin.Nit;
-dt       = varin.dt;
-lambda1  = varin.lambda1;
-lambda2  = varin.lambda2;
-epsilon  = varin.epsilon;
-hasNoise = varin.hasNoise;
-stop_C   = varin.stop_C;
+dt_u     = varin.dt_u;
+dt_k     = varin.dt_k;
+lambda   = varin.lambda;
+epsilon  = varin.epsilon_stop;
 Verbose  = varin.Verbose;
 
 switch Verbose
@@ -33,23 +32,24 @@ end
 %                               Algorithm                                 %
 %-------------------------------------------------------------------------%
 
-%---------------- Kernel Transformation to Fourier Space -----------------%
-dim      = size(f);
-kernel_F = psf2otf(kernel,[dim(1),dim(2)]);
+%--------------------- Kernel & Image dimensions -------------------------%
+[MU, NU, C] = size(im_org);
+[M, N, C] = size(f);
+[MK,NK]   = size(kernel);
 
 %------------------------ Convolution Operations -------------------------%
-R  =@(x) real(ifft2(kernel_F.*fft2(x)));
-RT =@(x) real(ifft2(conj(kernel_F).*fft2(x)));
+Conv_u  =@(u,k) conv2(u, k, 'valid');
+Convt_u =@(u,k) conv2(u, rot90(k,2), 'full');
+
+Convt_k =@(u,f) conv2(rot90(u,2), f, 'valid');
 
 %----------------------- Variables initialization ------------------------%
-u    = f;
+k = ones(MK,NK)/MK/NK;
+
 iter = 1;
 stop = false;
-if hasNoise
-    sigma_hat = estimate_noise_rgb(f);
-end
 
-while (iter <= Nit) && (~stop)
+while (iter < Nit)  && (~stop)
 %---------------------------- Visualization ------------------------------%
     switch Verbose
         case 0
@@ -62,9 +62,10 @@ while (iter <= Nit) && (~stop)
             end
             [en(iter),pr(iter),fi(iter)] = pEnergy_R(u,f,lambda,p,R);
             psnr(iter) = PSNR(u,im_org);
-            disp(['Iter: ',num2str(iter),' PSNR: ', num2str(psnr(iter)), ' Total Energy: ', num2str(en(iter)), ' Prior: ', num2str(pr(iter)), ' Fidelity: ',num2str(fi(iter)) ])
+            [ssim(iter),ssimmap] = ssim(u,im_org);
+            disp(['Iter: ',num2str(iter),' PSNR: ', num2str(psnr(iter)),' SSIM: ', num2str(ssim(iter)),' Total Energy: ', num2str(en(iter)), ' Prior: ', num2str(pr(iter)), ' Fidelity: ',num2str(fi(iter)) ])
         case 2
-            [en(iter),pr(iter),fi(iter)] = pEnergy_R(u,f,lambda,p,R);
+            [en(iter),pr(iter),fi(iter)] = pEnergy_R(u,f,lambda,2,R);
             psnr(iter) = PSNR(u,im_org);
             [ssim(iter),ssimmap] = ssim(u,im_org);
             subplot(141), imshow(u), title(['PSNR: ',num2str(psnr(iter))])
@@ -72,12 +73,14 @@ while (iter <= Nit) && (~stop)
                           plot(fi,'b','LineWidth', 2),
                           plot(pr,'g','LineWidth', 2)
                           legend('Total Energy','Fidelity','Prior'), grid on
-            subplot(143), plot(psnr,'c','LineWidth', 2), 
+            subplot(143), plot(psnr,'c','LineWidth', 2),
                           legend('PSNR (db)'), grid on
             subplot(144), imshow(ssimmap,[]), title("SSIM: "+ssim(iter))
             pause(0)
     end
+
 %----------------------------- Algorithm ---------------------------------%
+    
     % Image Gradient
     ux = parcial_x(u);
     uy = parcial_y(u);
@@ -89,40 +92,39 @@ while (iter <= Nit) && (~stop)
     % Image Laplacian   
     plap = div_x(b.*ux) + div_y(b.*uy);
 
-    % Image update by Gradient Descense
-    mask = exp(mod_grad);
-
-    u2  = u - dt*(mask.*(RT(R(u)-f)) - plap);
-    %u2  = u - dt*(lamda1*(RT(R(u)-f)) - lambda2*plap);
-
-    if hasNoise 
-        % Stop criteria 1: Image with noise
-        size_omega = numel(f);           % Number of pixels
-        residual = (f - R(u)).^2;
-        integral = sum(residual(:));
-
-        disp(['Stop Criteria: ', num2str(integral - size_omega*stop_C*(sigma_hat.^2))])
-        stop = integral - size_omega*stop_C*(sigma_hat.^2) < 0;
-
-    else
-        % Stop criteria 2: Image without noise
-        norm_u = norm(u2(:) - u(:));
-        disp(['Stop Criteria: ', num2str(norm_u)])
-
-        stop = norm_u < epsilon;    
+    % Image update
+    gradudata = zeros(MU,NU,C);
+    for c=1:C
+        gradudata(:,:,c) = Convt_u(Conv_u(u(:,:,c), k) - f(:,:,c), k);
     end
+    u2   = u - dt_u*(gradudata - lambda*plap);
+
+    % Kernel update
+    gradk  = zeros(MK,NK);
+    for c=1:C
+        gradk  = gradk + Convt_k( u(:,:,c), Conv_u(u(:,:,c), k) - f(:,:,c) );
+    end
+    k = k - dt_k*gradk;
+    
+    % Kernel projection
+    k = k.*(k>0);
+    k = k/sum(k(:));
+
+    % Stop criteria
+    norm_u = norm(u2(:) - u(:));
+    disp(['Stop Criteria: ',num2str(norm_u)])
+    stop = norm_u < epsilon;
 
     % Variables update
     u = u2;
     iter = iter +1;
+    lambda = max(1e-3,lambda * 0.999);
 
-    %lambda1 = max(10,1.01*lambda1);
-    %lambda2 = max(1e-3,0.99*lambda2);
 end
-
 %--------------------------- Output Variables ----------------------------%
 if Verbose == 0
     varout.u        = u;
+    varout.k        = k;
 else
     varout.u        = u;
     varout.en       = en;
@@ -132,4 +134,8 @@ else
     varout.ssim     = ssim;
 end
 end
+
+
+
+
 

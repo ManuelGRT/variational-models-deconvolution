@@ -48,7 +48,7 @@ axis image
 Noise_STD = 0;
 
 % Load Motion Kernels
-load kernels.mat;
+load motion_kernels.mat;
 kernel = kernel7;
 
 % Kernel and Fourier Transform Kernel

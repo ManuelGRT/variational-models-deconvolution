@@ -84,7 +84,7 @@ end
 [ssimval,ssimmap] = ssim(u_deconv,im);
 
 figure
-subplot(141), imagesc(u_deconv), title(['Reconstructed Image PSNR: ',num2str(PSNR(im,u_deconv)),' db',',  SSIM: ',num2str(ssimval)])
+subplot(141), imagesc(u_deconv), title(['Reconstructed Image PSNR: ',num2str(PSNR(im,u_deconv)),' db'])
 axis off
 axis image
 subplot(142), plot(en_deconv,'r','LineWidth', 2), hold on,
@@ -128,7 +128,7 @@ figure,
 subplot(221), imagesc(u_deconvreg),title(['Deconvreg-L1 PSNR: ',num2str(PSNR(im,u_deconvreg)),' db'])
 axis off
 axis image
-subplot(224), imagesc(ssimmap_deconvreg), title("Deconvreg-L1 SSIM: "+ssim_lucy)
+subplot(224), imagesc(ssimmap_deconvreg), title("Deconvreg-L1 SSIM: "+ssim_deconvreg)
 axis off
 axis image
 subplot(223), imagesc(lucy),    title(['Lucy-Richardson PSNR: ',num2str(PSNR(im,lucy)),' db'])
@@ -149,7 +149,7 @@ axis image
 subplot(142), imagesc(u_deconvreg), title(['Deconvreg-L1: ', num2str(PSNR(im,u_deconvreg)),' db'])
 axis off
 axis image
-subplot(143), imagesc(luc1),     title(['Lucy-Richardson: ', num2str(PSNR(im,lucy)),' db'])
+subplot(143), imagesc(lucy),     title(['Lucy-Richardson: ', num2str(PSNR(im,lucy)),' db'])
 axis off
 axis image
 subplot(144), imagesc(u_deconv), title(['Deconvolution: ', num2str(PSNR(im,u_deconv)),' db'])

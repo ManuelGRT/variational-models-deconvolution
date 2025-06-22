@@ -64,7 +64,7 @@ axis image
 
 % Algorithm input parameters
 varin.lambda1   = 1;              % Fidelity Hyperparam
-varin.lambda2   = 1;              % Fidelity Hyperparam
+varin.lambda2   = 1;              % Regularization Hyperparam
 varin.Nit       = 10000;          % Number of Iterations
 varin.dt        = 1*1e-2;         % Step size 
 varin.epsilon   = 1.e-6;          % Epsilon
@@ -91,7 +91,7 @@ if varin.Verbose ~= 0
     ssim_p = varout.ssim;
 end
 
-%% Show Deconvolution Model Final Results
+%% Show Deconvolution Denoising Model Final Results
 [ssimval,ssimmap] = ssim(u_deconv,im);
 
 figure
@@ -139,7 +139,7 @@ figure,
 subplot(221), imagesc(u_deconvreg),title(['Deconvreg-L1 PSNR: ',num2str(PSNR(im,u_deconvreg)),' db'])
 axis off
 axis image
-subplot(224), imagesc(ssimmap_deconvreg), title("Deconvreg-L1 SSIM: "+ssim_lucy)
+subplot(224), imagesc(ssimmap_deconvreg), title("Deconvreg-L1 SSIM: "+ssim_deconvreg)
 axis off
 axis image
 subplot(223), imagesc(lucy),    title(['Lucy-Richardson PSNR: ',num2str(PSNR(im,lucy)),' db'])
@@ -160,7 +160,7 @@ axis image
 subplot(142), imagesc(u_deconvreg), title(['Deconvreg-L1: ', num2str(PSNR(im,u_deconvreg)),' db'])
 axis off
 axis image
-subplot(143), imagesc(luc1),     title(['Lucy-Richardson: ', num2str(PSNR(im,lucy)),' db'])
+subplot(143), imagesc(lucy),     title(['Lucy-Richardson: ', num2str(PSNR(im,lucy)),' db'])
 axis off
 axis image
 subplot(144), imagesc(u_p), title(['p=',num2str(varin.p),': ', num2str(PSNR(im,u_p)),' db'])
