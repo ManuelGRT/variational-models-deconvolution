@@ -69,11 +69,12 @@ varin.Nit       = 10000;          % Number of Iterations
 varin.dt        = 1*1e-2;         % Step size 
 varin.epsilon   = 1.e-6;          % Epsilon
 varin.hasNoise  = false;          % Image has Noise
+varin.stop_C    = 0.95;           % Stop Criteria constant
+varin.p         = 2;              % p Laplacian
 
 varin.f         = im_blur_noise;  % Blurred image
 varin.im_org    = im;             % Original Image
 varin.kernel    = kernel;         % Blurred Kernel
-varin.p         = 2;              % p Laplacian
 varin.Verbose   = 2;              % Verbose
 
 % Algorithm execution
