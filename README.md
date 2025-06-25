@@ -26,12 +26,7 @@ Script: `utils/analytic_reconstruction.m`
 This script computes the inverse of a known blurring operator (in the frequency domain) to analytically reconstruct the original image, serving as a baseline for comparison with the variational approaches.
 
 ## Project Structure
-variational-models-deconvolution/
-├── commons/ # Gradient, divergence, noise estimation utilities
-├── utils/ # Blurring kernels, convolution and reconstruction utilities
-├── variational_models/ # Implementation of the three main models and scripts
-├── images/ # Sample input and result images (if available)
-├── README.md # Project description
+``` variational-models-deconvolution/ ├── commons/ # Gradient, divergence, and noise estimation functions ├── utils/ # Blurring kernels, convolution routines, and analytical reconstruction ├── variational_models/ # Implementations of the three main variational models and execution scripts ├── images/ # Example images and results (if available) ├── README.md # Project documentation ```
 
 ## Dependencies
 
