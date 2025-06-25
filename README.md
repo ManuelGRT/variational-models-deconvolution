@@ -29,9 +29,9 @@ This script computes the inverse of a known blurring operator (in the frequency 
 ``` 
 variational-models-deconvolution/ 
 ├── commons/ # Gradient, divergence, and noise estimation functions
-├── utils/ # Blurring kernels, convolution routines, and analytical reconstruction
+├── utils/ # Blurring kernels, convolution and fourier transform of images, and analytical reconstruction
 ├── variational_models/ # Implementations of the three main variational models and execution scripts
-├── images/ # Example images and results (if available)
+├── images/ # Example images
 ├── README.md # Project documentation 
 ```
 
