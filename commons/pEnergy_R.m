@@ -1,4 +1,4 @@
-function [energy,fidelity,prior]=pEnergy(u,f,lambda,p,R)
+function [energy,fidelity,prior]=pEnergy_R(u,f,lambda,p,R)
 % Calculates TV(u)+lambda*||u-f||^2
 dim = size(u);
 Omega = dim(1)*dim(2);

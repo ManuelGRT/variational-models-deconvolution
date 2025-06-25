@@ -50,7 +50,6 @@ kernel_Fourier = psf2otf(kernel,[dim(1),dim(2)]);
 % Image Transformation Kernel + Noise
 R =@(x) real(ifft2(kernel_Fourier.*fft2(x)));
 f_same = u;
-
 %----------------------- Variables initialization ------------------------%
 k = ones(MK,NK)/MK/NK;
 
@@ -104,18 +103,21 @@ while (iter < Nit)  && (~stop)
     plap = div_x(b.*ux) + div_y(b.*uy);
 
     % Image update
-    gradudata = zeros(MU,NU,C);
+    u_conv = zeros(MU,NU,C);
     for c=1:C
-        gradudata(:,:,c) = Convt_u(Conv_u(u(:,:,c), k) - f(:,:,c), k);
+        u_conv(:,:,c) = Convt_u(Conv_u(u(:,:,c), k) - f(:,:,c), k);
     end
-    u2   = u - dt_u*(gradudata - lambda*plap);
+    ulap = u_conv - lambda*plap;
+    dt_u = 5e-3*max(u(:))/max(1e-31, max(max(abs(ulap(:)))));
+    u2   = u - dt_u*(ulap);
 
     % Kernel update
-    gradk  = zeros(MK,NK);
+    k_conv = zeros(MK,NK);
     for c=1:C
-        gradk  = gradk + Convt_k( u(:,:,c), Conv_u(u(:,:,c), k) - f(:,:,c) );
+        k_conv = k_conv + Convt_k( u(:,:,c), Conv_u(u(:,:,c), k) - f(:,:,c) );
     end
-    k = k - dt_k*gradk;
+    dt_k = 1e-3*max(k(:))/max(1e-31, max(max(abs(k_conv))));
+    k = k - dt_k*k_conv;
     
     % Kernel projection
     k = k.*(k>0);
@@ -129,7 +131,7 @@ while (iter < Nit)  && (~stop)
     % Variables update
     u = u2;
     iter = iter +1;
-    lambda = max(1e-3,lambda * 0.999);
+    lambda = max(1e-4,lambda * 0.999);
 
 end
 %--------------------------- Output Variables ----------------------------%

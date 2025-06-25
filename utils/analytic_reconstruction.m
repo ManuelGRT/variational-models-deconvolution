@@ -1,6 +1,13 @@
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %                  Convolution Analytic Reconstruction                    %
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%% Imports
+clear all, close all, clc
+
+basePath = fileparts(pwd);
+commonsPath = fullfile(basePath, 'commons');
+addpath(commonsPath);
+
 %% Read Image
 clear all, close all, clc
 

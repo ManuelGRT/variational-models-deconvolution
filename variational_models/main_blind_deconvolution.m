@@ -13,7 +13,7 @@ addpath(commonsPath);
 
 basePath = fileparts(pwd);
 img_folder = fullfile(basePath, 'images');
-im = imread(fullfile(img_folder, 'panda.png'));
+im = imread(fullfile(img_folder, 'flor.jpeg'));
 im = im2double(im); % im2double transforms the data into double type and in the range [0,1]
 
 
@@ -27,7 +27,7 @@ kernel_gaussian = fspecial('gaussian', [kernel_size, kernel_size], sigma);
 % Load Motion Kernels
 load motion_kernels.mat;
 
-kernel = kernel7; %kernel_gaussian
+kernel = kernel8; %kernel_gaussian
 
 % Image Convolution
 im_blur_f = convn(im,kernel,'valid');
@@ -51,12 +51,12 @@ axis image
 %% DECONVOLUTION ALGORITHM
 
 % Algorithm input parameters
-varin.Nit           = 10;            % Number of iterations
+varin.Nit           = 10000;            % Number of iterations
 varin.epsilon_stop  = 1.e-6;            % Epsilon stop criteria
 varin.dt_u          = 1*1e-3;           % Step size u
 varin.dt_k          = 1*1e-3;           % Step size Kernel
-varin.lambda        = 1;                % Regularization Hyperparam
-varin.p             = 2;                % p Laplacian
+varin.lambda        = 2.5;                % Regularization Hyperparam
+varin.p             = 1;                % p Laplacian
 
 varin.f             = im_blur_f;        % Blurred Image
 varin.u             = im_blur_u;        % Initial u
