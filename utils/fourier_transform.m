@@ -6,7 +6,7 @@
 clear all, close all, clc
 
 basePath = fileparts(pwd);
-img_folder = fullfile(basePath, 'imagenes');
+img_folder = fullfile(basePath, 'images');
 im = imread(fullfile(img_folder, 'iceberg_gris.jpg'));
 im_gray = im2double(rgb2gray(im)); 
 im_gray = im2double(im_gray); % im2double transforms the data into double type and in the range [0,1]
